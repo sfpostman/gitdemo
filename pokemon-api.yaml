@@ -1,0 +1,342 @@
+openapi: 3.0.0
+info:
+  title: Pokemon API
+  version: 1.0.0
+  description: |-
+    A RESTful API for retrieving and managing Pokémon data sourced from the Pokédex.
+
+    ## Architecture
+    Requests are routed through an API Gateway (`localhost:3000`) which proxies to two microservices:
+    - **Pokemon Service** (`localhost:3001`) — CRUD operations on Pokémon
+    - **Types Service** (`localhost:3002`) — Type listings and filtering
+
+    ## Pagination
+    List endpoints support `limit` (default: 20) and `offset` (default: 0) query parameters.
+
+servers:
+  - url: http://localhost:3000
+    description: Local API Gateway
+
+tags:
+  - name: Pokemon
+    description: CRUD operations on Pokémon entries
+  - name: Types
+    description: Pokémon type listings and filtering
+
+paths:
+  /pokemon:
+    get:
+      summary: List all Pokemon
+      tags: [Pokemon]
+      parameters:
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/offset'
+      responses:
+        '200':
+          description: Paginated list of Pokemon
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                    example: 1219
+                  limit:
+                    type: integer
+                    example: 20
+                  offset:
+                    type: integer
+                    example: 0
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Pokemon'
+
+    post:
+      summary: Create a new Pokemon
+      tags: [Pokemon]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PokemonInput'
+            example:
+              number: "1025"
+              name: Pecharunt
+              type: Poison/Ghost
+              total: 600
+              hp: 88
+              attack: 88
+              defense: 160
+              sp_atk: 88
+              sp_def: 88
+              speed: 88
+      responses:
+        '201':
+          description: Pokemon created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Pokemon'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /pokemon/{id}:
+    parameters:
+      - $ref: '#/components/parameters/pokemonId'
+    get:
+      summary: Get Pokemon by Pokedex number
+      tags: [Pokemon]
+      responses:
+        '200':
+          description: A single Pokemon (or array of forms if multiple exist)
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/Pokemon'
+                  - type: array
+                    items:
+                      $ref: '#/components/schemas/Pokemon'
+              example:
+                number: "0006"
+                name: Charizard
+                type: Fire/Flying
+                total: 534
+                hp: 78
+                attack: 84
+                defense: 78
+                sp_atk: 109
+                sp_def: 85
+                speed: 100
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    patch:
+      summary: Update a Pokemon
+      tags: [Pokemon]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PokemonPatch'
+            example:
+              hp: 100
+              speed: 120
+      responses:
+        '200':
+          description: Updated Pokemon
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Pokemon'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      summary: Delete a Pokemon
+      tags: [Pokemon]
+      responses:
+        '204':
+          description: Pokemon deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /types:
+    get:
+      summary: List all types
+      tags: [Types]
+      responses:
+        '200':
+          description: All unique Pokémon types
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                    example: 18
+                  data:
+                    type: array
+                    items:
+                      type: string
+                    example: [Bug, Dark, Dragon, Electric, Fairy, Fighting, Fire, Flying, Ghost, Grass, Ground, Ice, Normal, Poison, Psychic, Rock, Steel, Water]
+
+  /types/{type}/pokemon:
+    parameters:
+      - name: type
+        in: path
+        required: true
+        schema:
+          type: string
+        example: Fire
+    get:
+      summary: Get Pokemon by type
+      tags: [Types]
+      parameters:
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/offset'
+      responses:
+        '200':
+          description: Paginated list of Pokemon matching the given type
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  type:
+                    type: string
+                    example: Fire
+                  total:
+                    type: integer
+                    example: 97
+                  limit:
+                    type: integer
+                    example: 20
+                  offset:
+                    type: integer
+                    example: 0
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Pokemon'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+components:
+  parameters:
+    pokemonId:
+      name: id
+      in: path
+      required: true
+      description: Pokédex number (zero-padded, e.g. 0006)
+      schema:
+        type: string
+      example: "0006"
+    limit:
+      name: limit
+      in: query
+      schema:
+        type: integer
+        default: 20
+        minimum: 1
+        maximum: 100
+    offset:
+      name: offset
+      in: query
+      schema:
+        type: integer
+        default: 0
+        minimum: 0
+
+  schemas:
+    Pokemon:
+      type: object
+      properties:
+        number:
+          type: string
+          example: "0006"
+        name:
+          type: string
+          example: Charizard
+        type:
+          type: string
+          example: Fire/Flying
+        total:
+          type: integer
+          example: 534
+        hp:
+          type: integer
+          example: 78
+        attack:
+          type: integer
+          example: 84
+        defense:
+          type: integer
+          example: 78
+        sp_atk:
+          type: integer
+          example: 109
+        sp_def:
+          type: integer
+          example: 85
+        speed:
+          type: integer
+          example: 100
+
+    PokemonInput:
+      type: object
+      required: [number, name, type]
+      properties:
+        number:
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+        total:
+          type: integer
+        hp:
+          type: integer
+        attack:
+          type: integer
+        defense:
+          type: integer
+        sp_atk:
+          type: integer
+        sp_def:
+          type: integer
+        speed:
+          type: integer
+
+    PokemonPatch:
+      type: object
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+        total:
+          type: integer
+        hp:
+          type: integer
+        attack:
+          type: integer
+        defense:
+          type: integer
+        sp_atk:
+          type: integer
+        sp_def:
+          type: integer
+        speed:
+          type: integer
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+
+  responses:
+    NotFound:
+      description: Not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: Pokemon not found
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: number, name, and type are required
