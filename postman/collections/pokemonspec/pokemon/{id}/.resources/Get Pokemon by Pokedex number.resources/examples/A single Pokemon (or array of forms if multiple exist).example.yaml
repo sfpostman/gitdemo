@@ -1,0 +1,132 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/pokemon/:id"
+  method: GET
+  headers:
+    Accept: application/json
+  pathVariables:
+    - key: id
+      value: "0006"
+      description: Pokédex number (zero-padded, e.g. 0006)
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "number": "0006",
+        "name": "Charizard",
+        "type": "Fire/Flying",
+        "total": 534,
+        "hp": 78,
+        "attack": 84,
+        "defense": 78,
+        "sp_atk": 109,
+        "sp_def": 85,
+        "speed": 100
+      }
+    $type: |-
+      {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "number": {
+                "type": "string",
+                "example": "0006"
+              },
+              "name": {
+                "type": "string",
+                "example": "Charizard"
+              },
+              "type": {
+                "type": "string",
+                "example": "Fire/Flying"
+              },
+              "total": {
+                "type": "integer",
+                "example": 534
+              },
+              "hp": {
+                "type": "integer",
+                "example": 78
+              },
+              "attack": {
+                "type": "integer",
+                "example": 84
+              },
+              "defense": {
+                "type": "integer",
+                "example": 78
+              },
+              "sp_atk": {
+                "type": "integer",
+                "example": 109
+              },
+              "sp_def": {
+                "type": "integer",
+                "example": 85
+              },
+              "speed": {
+                "type": "integer",
+                "example": 100
+              }
+            }
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "number": {
+                  "type": "string",
+                  "example": "0006"
+                },
+                "name": {
+                  "type": "string",
+                  "example": "Charizard"
+                },
+                "type": {
+                  "type": "string",
+                  "example": "Fire/Flying"
+                },
+                "total": {
+                  "type": "integer",
+                  "example": 534
+                },
+                "hp": {
+                  "type": "integer",
+                  "example": 78
+                },
+                "attack": {
+                  "type": "integer",
+                  "example": 84
+                },
+                "defense": {
+                  "type": "integer",
+                  "example": 78
+                },
+                "sp_atk": {
+                  "type": "integer",
+                  "example": 109
+                },
+                "sp_def": {
+                  "type": "integer",
+                  "example": 85
+                },
+                "speed": {
+                  "type": "integer",
+                  "example": 100
+                }
+              }
+            }
+          }
+        ]
+      }
+order: 1000

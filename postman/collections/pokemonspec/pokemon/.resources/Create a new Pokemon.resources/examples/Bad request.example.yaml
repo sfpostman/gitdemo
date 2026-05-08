@@ -1,0 +1,43 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/pokemon"
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "number": "1025",
+        "name": "Pecharunt",
+        "type": "Poison/Ghost",
+        "total": 600,
+        "hp": 88,
+        "attack": 88,
+        "defense": 160,
+        "sp_atk": 88,
+        "sp_def": 88,
+        "speed": 88
+      }
+response:
+  statusCode: 400
+  statusText: Bad Request
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "error": "number, name, and type are required"
+      }
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string"
+          }
+        }
+      }
+order: 2000

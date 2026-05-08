@@ -1,0 +1,7 @@
+# Use this workspace to collaborate
+workspace:
+  id: 87b60bd5-6890-4826-8a8c-4508849a28fd
+
+localResources:
+  specs:
+    - ../pokemon-api.yaml
