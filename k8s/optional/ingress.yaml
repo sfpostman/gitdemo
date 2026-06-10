@@ -1,0 +1,24 @@
+# Optional: requires an Ingress controller (for example ingress-nginx).
+# Install the controller cluster-wide before applying this manifest.
+#
+# Typical dev host entry (macOS/Linux):
+# echo "127.0.0.1 pokedex.demo.local" | sudo tee -a /etc/hosts
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: pokedex-gateway
+  namespace: pokedex-demo
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: pokedex.demo.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: gateway-service
+                port:
+                  number: 80

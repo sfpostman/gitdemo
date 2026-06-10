@@ -1,0 +1,35 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/types/:type/pokemon?limit=20&offset=0"
+  method: GET
+  headers:
+    Accept: application/json
+  queryParams:
+    limit: "20"
+    offset: "0"
+  pathVariables:
+    type: Fire
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 404
+  statusText: Not Found
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "error": "Pokemon not found"
+      }
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string"
+          }
+        }
+      }
+order: 2000

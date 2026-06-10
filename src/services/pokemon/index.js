@@ -3,25 +3,60 @@ const mysql = require('mysql2/promise');
 const fs = require('fs');
 const path = require('path');
 
+const PORT = parseInt(process.env.PORT || '3001', 10);
+
 const app = express();
 app.use(express.json());
 
-const db = mysql.createPool({
-  host: 'localhost',
-  user: 'root',
-  database: 'pokedex',
-});
+function mysqlConfig() {
+  return {
+    host: process.env.MYSQL_HOST || 'localhost',
+    port: parseInt(process.env.MYSQL_PORT || '3306', 10),
+    user: process.env.MYSQL_USER || 'root',
+    password: process.env.MYSQL_PASSWORD || '',
+    database: process.env.MYSQL_DATABASE || 'pokedex',
+  };
+}
+
+const db = mysql.createPool(mysqlConfig());
+
+function resolveCsvPath() {
+  if (process.env.POKEDEX_CSV_PATH) return process.env.POKEDEX_CSV_PATH;
+  const nextToIndex = path.join(__dirname, 'pokedex.csv');
+  if (fs.existsSync(nextToIndex)) return nextToIndex;
+  return path.join(__dirname, '../../../pokedex.csv');
+}
+
+async function waitForMysql(pool, { retries = 30, delayMs = 2000 } = {}) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      await pool.query('SELECT 1');
+      return;
+    } catch (e) {
+      console.warn(`MySQL not ready (${i + 1}/${retries}): ${e.message}`);
+      await new Promise((r) => setTimeout(r, delayMs));
+    }
+  }
+  throw new Error('MySQL unreachable after retries');
+}
 
 async function seedDatabase() {
-  const csvPath = path.join(__dirname, '../../../pokedex.csv');
-  const lines = fs.readFileSync(csvPath, 'utf8').trim().split('\n').slice(1); // skip header
+  await waitForMysql(db);
+
+  const [[{ count }]] = await db.query('SELECT COUNT(*) as count FROM pokemon');
+  if (count > 0) {
+    console.log('Pokemon table already seeded; skipping CSV import.');
+    return;
+  }
+
+  const csvPath = resolveCsvPath();
+  const lines = fs.readFileSync(csvPath, 'utf8').trim().split('\n').slice(1);
 
   const rows = lines.map(line => {
     const [number, name, type, total, hp, attack, defense, sp_atk, sp_def, speed] = line.split(',');
-    return [number, name, type, parseInt(total), parseInt(hp), parseInt(attack), parseInt(defense), parseInt(sp_atk), parseInt(sp_def), parseInt(speed)];
+    return [number, name, type, parseInt(total, 10), parseInt(hp, 10), parseInt(attack, 10), parseInt(defense, 10), parseInt(sp_atk, 10), parseInt(sp_def, 10), parseInt(speed, 10)];
   });
 
-  await db.query('TRUNCATE TABLE pokemon');
   await db.query(
     'INSERT INTO pokemon (number, name, type, total, hp, attack, defense, sp_atk, sp_def, speed) VALUES ?',
     [rows]
@@ -33,10 +68,10 @@ app.get('/pokemon', async (req, res) => {
   const { limit = 20, offset = 0 } = req.query;
   const [rows] = await db.query(
     'SELECT * FROM pokemon LIMIT ? OFFSET ?',
-    [parseInt(limit), parseInt(offset)]
+    [parseInt(limit, 10), parseInt(offset, 10)]
   );
   const [[{ total }]] = await db.query('SELECT COUNT(*) as total FROM pokemon');
-  res.json({ total, limit: parseInt(limit), offset: parseInt(offset), data: rows });
+  res.json({ total, limit: parseInt(limit, 10), offset: parseInt(offset, 10), data: rows });
 });
 
 app.get('/pokemon/:id', async (req, res) => {
@@ -75,5 +110,8 @@ app.delete('/pokemon/:id', async (req, res) => {
 });
 
 seedDatabase().then(() => {
-  app.listen(3001, () => console.log('Pokemon service running on port 3001'));
+  app.listen(PORT, () => console.log(`Pokemon service running on port ${PORT}`));
+}).catch((err) => {
+  console.error(err);
+  process.exit(1);
 });

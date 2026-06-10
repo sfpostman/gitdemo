@@ -1,0 +1,66 @@
+# Local smoke-test stack (parity with Kubernetes env vars).
+
+services:
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_ROOT_PASSWORD: pokedex-demo-root
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./k8s/mysql-init.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-ppokedex-demo-root"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 40s
+
+  pokemon:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.pokemon
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_USER: root
+      MYSQL_PASSWORD: pokedex-demo-root
+      MYSQL_DATABASE: pokedex
+    depends_on:
+      mysql:
+        condition: service_healthy
+    ports:
+      - "3001:3001"
+
+  types:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.types
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_USER: root
+      MYSQL_PASSWORD: pokedex-demo-root
+      MYSQL_DATABASE: pokedex
+    depends_on:
+      mysql:
+        condition: service_healthy
+    ports:
+      - "3002:3002"
+
+  gateway:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.gateway
+    environment:
+      POKEMON_SERVICE_URL: http://pokemon:3001
+      TYPES_SERVICE_URL: http://types:3002
+    depends_on:
+      pokemon:
+        condition: service_started
+      types:
+        condition: service_started
+    ports:
+      - "3000:3000"
+
+volumes:
+  mysql-data:

@@ -1,0 +1,7 @@
+**/.git
+**/.cursor
+**/node_modules
+.git
+.dockerignore
+.DS_Store
+*.md

@@ -1,16 +1,20 @@
 const express = require('express');
 const { createProxyMiddleware } = require('http-proxy-middleware');
 
+const PORT = parseInt(process.env.PORT || '3000', 10);
+const POKEMON_SERVICE_URL = process.env.POKEMON_SERVICE_URL || 'http://localhost:3001';
+const TYPES_SERVICE_URL = process.env.TYPES_SERVICE_URL || 'http://localhost:3002';
+
 const app = express();
 
 app.use('/pokemon', createProxyMiddleware({
-  target: 'http://localhost:3001',
+  target: POKEMON_SERVICE_URL,
   changeOrigin: true,
   pathRewrite: (path, req) => '/pokemon' + path,
 }));
 
 app.use('/types', createProxyMiddleware({
-  target: 'http://localhost:3002',
+  target: TYPES_SERVICE_URL,
   changeOrigin: true,
   pathRewrite: (path, req) => '/types' + path,
 }));
@@ -31,4 +35,4 @@ app.get('/', (req, res) => {
   });
 });
 
-app.listen(3000, () => console.log('API Gateway running on port 3000'));
+app.listen(PORT, () => console.log(`API Gateway running on port ${PORT}`));

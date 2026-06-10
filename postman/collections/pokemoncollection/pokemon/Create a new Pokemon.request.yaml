@@ -1,0 +1,64 @@
+$kind: http-request
+url: "{{baseUrl}}/pokemon"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: json
+  content: |-
+    {
+      "number": "1025",
+      "name": "Pecharunt",
+      "type": "Poison/Ghost",
+      "total": 600,
+      "hp": 88,
+      "attack": 88,
+      "defense": 160,
+      "sp_atk": 88,
+      "sp_def": 88,
+      "speed": 88
+    }
+  $type: |-
+    {
+      "type": "object",
+      "properties": {
+        "number": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "total": {
+          "type": "integer"
+        },
+        "hp": {
+          "type": "integer"
+        },
+        "attack": {
+          "type": "integer"
+        },
+        "defense": {
+          "type": "integer"
+        },
+        "sp_atk": {
+          "type": "integer"
+        },
+        "sp_def": {
+          "type": "integer"
+        },
+        "speed": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "number",
+        "name",
+        "type"
+      ]
+    }
+examples: ./.resources/Create a new Pokemon.resources/examples
+order: 2000

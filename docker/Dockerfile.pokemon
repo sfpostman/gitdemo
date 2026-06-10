@@ -1,0 +1,19 @@
+# Build from repository root:
+# docker build -f docker/Dockerfile.pokemon -t pokedex-pokemon:latest .
+FROM node:22-bookworm-slim
+
+WORKDIR /app
+
+COPY src/services/pokemon/package.json src/services/pokemon/package-lock.json ./
+
+RUN npm ci --omit=dev && chown -R node:node /app
+
+COPY src/services/pokemon/index.js ./
+COPY pokedex.csv ./
+
+USER node
+
+ENV NODE_ENV=production
+EXPOSE 3001
+
+CMD ["node", "index.js"]
