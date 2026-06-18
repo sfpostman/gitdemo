@@ -14,4 +14,4 @@ jobs:
         run: postman login --with-api-key ${{ secrets.POSTMAN_API_KEY }}
       - name: Run API tests
         run: |
-          postman collection run "54079851-c71e2332-6326-4279-b97d-8dc053a831e1"
+          postman collection run "54079851-c71e2332-6326-4279-b97d-8dc053a831e1" -e "54079851-f30140c1-eff9-42b1-be95-87248ab65fd9"
